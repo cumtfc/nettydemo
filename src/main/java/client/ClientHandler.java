@@ -1,19 +1,17 @@
-/**
- * @author fengchu created on 2018/9/5-20:32
- */
+package client;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-import java.util.Date;
-
+/**
+ * @author fengchu created on 2018/9/5-20:32
+ */
 public class ClientHandler extends ChannelInboundHandlerAdapter {
+
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        UnixTime m = UnixTime.fromObject(msg);
-        System.out.println(new Date(m.value()));
-        ctx.close();
+        System.out.println(msg);
     }
 
     @Override

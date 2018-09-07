@@ -1,3 +1,7 @@
+package server;
+
+import decoder.Decoder;
+import encoder.Encoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -40,7 +44,10 @@ public class Server {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new ServerHandler());
+                        ch.pipeline()
+                            .addLast("decoder", new Decoder())
+                            .addLast("encoder", new Encoder())
+                            .addLast("handler", new ServerHandler());
                     }
                 })
                 .option(ChannelOption.SO_BACKLOG, 128)

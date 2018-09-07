@@ -1,6 +1,9 @@
+package decoder;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.util.CharsetUtil;
 
 import java.util.List;
 
@@ -9,10 +12,9 @@ import java.util.List;
  */
 public class Decoder extends ByteToMessageDecoder { 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) { 
-        if (in.readableBytes() < 4) {
-            return; 
-        }
-        out.add(new UnixTime(in.readUnsignedInt()));
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+        ByteBuf copy = in.copy();
+        in.clear();
+        out.add(copy.toString(CharsetUtil.UTF_8));
     }
 }

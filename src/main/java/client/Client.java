@@ -1,8 +1,17 @@
+package client;
+
+import decoder.Decoder;
+import encoder.Encoder;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+
+import java.util.Scanner;
 
 /**
  * @author fengchu created on 2018/9/5-20:20
@@ -22,14 +31,14 @@ public class Client {
             b.option(ChannelOption.SO_KEEPALIVE, true);
             b.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
-                public void initChannel(SocketChannel ch) throws Exception {
+                public void initChannel(SocketChannel ch) {
                     ch.pipeline()
-                        .addLast(new Decoder())
-                        .addLast(new ClientHandler());
+                        .addLast("decoder", new Decoder())
+                        .addLast("encoder", new Encoder())
+                        .addLast("handler", new ClientHandler());
                 }
             });
             connect(host, port, b);
-            Thread.sleep(5 * 60 * 10000);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -41,10 +50,19 @@ public class Client {
         try {
             // 启动客户端
             ChannelFuture f = b.connect(host, port).sync();
-            // 等待连接关闭
-            f.channel().closeFuture()
-                .addListener((ChannelFutureListener) future -> connect(host, port, b));
 
+            try (Scanner in = new Scanner(System.in)) {
+                while (in.hasNextLine()) {
+                    String s = in.nextLine();
+                    if (s.equals("exit")) {
+                        f.channel().close();
+                        break;
+                    }
+                    f.channel().writeAndFlush(s);
+                }
+            }
+
+        f.channel().closeFuture().sync();
         } catch (Exception e) {
             e.printStackTrace();
         }
