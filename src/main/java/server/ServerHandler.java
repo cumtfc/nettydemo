@@ -1,33 +1,27 @@
 package server;
 
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author fengchu created on 2018/9/5-11:46
  */
-public class ServerHandler extends ChannelInboundHandlerAdapter {
+public class ServerHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
-    private static final List<ChannelHandlerContext> contexts = new ArrayList<>();
-
-    @Override
-    public void channelActive(final ChannelHandlerContext ctx) {
-        SocketAddress socketAddress = ctx.channel().remoteAddress();
-        System.out.println("客户端接入：" + socketAddress);
-        contexts.add(ctx);
-        contexts.stream().parallel()
-            .forEach(context -> context.writeAndFlush(context.channel().remoteAddress() + " 上线"));
-    }
+    public static ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        contexts.stream().parallel()
+    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame text) throws Exception {
+        channels.stream().parallel()
             .filter(context -> context != ctx)
-            .forEach(context -> context.writeAndFlush(context.channel().remoteAddress() + ": " + msg));
+            .forEach(channel -> channel.writeAndFlush(text.copy()));
     }
 
     @Override
@@ -38,11 +32,21 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        SocketAddress socketAddress = ctx.channel().remoteAddress();
+        System.out.println("客户端接入：" + socketAddress);
+        channels.add(ctx.channel());
+        channels.stream().parallel()
+            .forEach(channel -> channel.writeAndFlush(new TextWebSocketFrame(channel.remoteAddress() + " 上线")));
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         SocketAddress socketAddress = ctx.channel().remoteAddress();
         System.out.println("客户端断开：" + socketAddress);
-        contexts.remove(ctx);
-        contexts.stream().parallel()
-            .forEach(context -> context.writeAndFlush(context.channel().remoteAddress() + " 下线"));
+        channels.remove(ctx);
+        channels.stream().parallel()
+            .forEach(channel -> channel.writeAndFlush(new TextWebSocketFrame(channel.remoteAddress() + " 下线")));
     }
+
 }

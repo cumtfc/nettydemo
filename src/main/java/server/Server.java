@@ -10,6 +10,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
  * 丢弃任何进入的数据
@@ -45,9 +49,16 @@ public class Server {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline()
-                            .addLast("decoder", new Decoder())
-                            .addLast("encoder", new Encoder())
-                            .addLast("handler", new ServerHandler());
+//                            .addLast("decoder", new Decoder())
+//                            .addLast("encoder", new Encoder())
+                            .addLast(new HttpServerCodec())
+                            .addLast(new HttpObjectAggregator(64 * 1024))
+                            .addLast(new ChunkedWriteHandler())
+                            .addLast("httpHandler", new HttpRequestHandler("/ws"))
+                            .addLast(new WebSocketServerProtocolHandler("/ws"))
+//                            .addLast("wsHandler", new ServerHandler());
+                            .addLast(new TextWebSocketFrameHandler());
+
                     }
                 })
                 .option(ChannelOption.SO_BACKLOG, 128)

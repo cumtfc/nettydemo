@@ -1,16 +1,17 @@
 package client;
 
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 
 /**
  * @author fengchu created on 2018/9/5-20:32
  */
-public class ClientHandler extends ChannelInboundHandlerAdapter {
+public class ClientHandler extends SimpleChannelInboundHandler {
 
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead0(ChannelHandlerContext ctx, Object msg) {
         System.out.println(msg);
     }
 
