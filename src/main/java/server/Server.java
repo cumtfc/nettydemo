@@ -1,7 +1,5 @@
 package server;
 
-import decoder.Decoder;
-import encoder.Encoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -14,6 +12,11 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 丢弃任何进入的数据
@@ -54,10 +57,12 @@ public class Server {
                             .addLast(new HttpServerCodec())
                             .addLast(new HttpObjectAggregator(64 * 1024))
                             .addLast(new ChunkedWriteHandler())
+                            .addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS))
+                            .addLast("heartbeat", new ServerHeartbeatHandler())
                             .addLast("httpHandler", new HttpRequestHandler("/ws"))
                             .addLast(new WebSocketServerProtocolHandler("/ws"))
 //                            .addLast("wsHandler", new ServerHandler());
-                            .addLast(new TextWebSocketFrameHandler());
+                            .addLast("wsHandler", new TextWebSocketFrameHandler());
 
                     }
                 })
