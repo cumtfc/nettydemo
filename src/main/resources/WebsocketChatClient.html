@@ -7,6 +7,7 @@
 <body>
 <script type="text/javascript">
   var socket;
+  var timer;
   if (!window.WebSocket) {
     window.WebSocket = window.MozWebSocket;
   }
@@ -28,11 +29,15 @@
       };
       socket.onopen = function (event) {
         var ta = document.getElementById('responseText');
+        timer = setInterval(function () {
+          socket.send("HeartBeat");
+        }, 4000);
         ta.value = "连接开启!";
       };
       socket.onclose = function (event) {
         var ta = document.getElementById('responseText');
         ta.value = ta.value + "连接被关闭";
+        timer.clearInterval();
       };
     } else {
       alert("你的浏览器不支持 WebSocket！");

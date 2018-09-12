@@ -12,8 +12,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.util.concurrent.TimeUnit;
@@ -68,12 +66,10 @@ public class Server {
                 })
                 .option(ChannelOption.SO_BACKLOG, 128)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
-
-            // 绑定端口，开始接收进来的连接
             ChannelFuture f = serverBootstrap.bind(port).sync();
 
-            // 等待服务器  socket 关闭 。
-            // 在这个例子中，这不会发生，但你可以优雅地关闭你的服务器。
+            // 等待服务器  socket 关闭
+            // 在这个例子中，这不会发生，但你可以优雅地关闭你的服务器
             f.channel().closeFuture().sync();
         } finally {
             workerGroup.shutdownGracefully();
