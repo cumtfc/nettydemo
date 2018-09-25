@@ -36,12 +36,16 @@
       };
       socket.onclose = function (event) {
         var ta = document.getElementById('responseText');
-        ta.value = ta.value + "连接被关闭";
-        timer.clearInterval();
+        ta.value = ta.value + "\n连接被关闭";
+        window.clearInterval(timer);
       };
     } else {
       alert("你的浏览器不支持 WebSocket！");
     }
+  }
+
+  function disconnect() {
+    socket.close();
   }
 
   function send(message) {
@@ -62,7 +66,8 @@
   <input type="text" name="message" style="width: 300px" value="hello netty!">
   <input type="button" value="发送消息" onclick="send(this.form.message.value)">
   <input type="button" onclick="javascript:document.getElementById('responseText').value=''" value="清空聊天记录">
-  <input type="button" onclick="connect()" value="连接服务器">
+  <input type="button" onclick="connect()" value="登录">
+  <input type="button" onclick="disconnect()" value="下线">
 </form>
 <br>
 <br>
